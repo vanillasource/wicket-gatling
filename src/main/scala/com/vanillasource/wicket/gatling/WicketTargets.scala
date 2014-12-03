@@ -25,5 +25,5 @@ package com.vanillasource.wicket.gatling
 case class WicketTargets()
 
 object WicketTargets {
-	def apply(baseUrl: String, requestUrl: String, responseBody: String) = new WicketTargets()
+	def apply(baseUrls: List[String], requestUrl: String, responseBody: String) = new WicketTargets()
 }
