@@ -19,11 +19,17 @@
 package com.vanillasource.wicket.gatling
 
 /**
-  * Containst all the Wicket targets from a response body. An object of this type will be always present
+  * Contains all the Wicket targets from a response body. An object of this type will be always present
   * in the session object.
   */
-case class WicketTargets()
+case class WicketTargets(targets: List[String])(val requestUri: String, val responseBody: String)
 
 object WicketTargets {
-	def apply(baseUrls: List[String], requestUrl: String, responseBody: String) = new WicketTargets()
+   /**
+     * Build the targets object from an URI and the corresponding body. All URIs
+     * extracted from the body will be applied as relative URIs.
+     */
+   def apply(requestUri: String, responseBody: String) = 
+      new WicketTargets(List())(requestUri, responseBody)
 }
+

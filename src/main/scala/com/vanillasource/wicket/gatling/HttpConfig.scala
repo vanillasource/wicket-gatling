@@ -38,7 +38,7 @@ import io.gatling.http.config.HttpProtocolBuilder
   * import com.vanillasource.wicket.gatling.HttpConfig._
   *
   * val httpConfig = http
-  *    .baseUrl(baseUrl)
+  *    .baseUri(baseUri)
   *    .enableWicketTargets()
   *    ...
   * }}}
@@ -46,13 +46,13 @@ import io.gatling.http.config.HttpProtocolBuilder
 object HttpConfig {
    /**
      * An implicit conversion which defines the enableWicketTargets() method seemingly on the
-     * original protocol builder. Note: when wicket targets are enabled the base URLs are saved,
-     * so do not modify the base URLs after method is applied.
+     * original protocol builder. Note: when wicket targets are enabled the base URIs are saved,
+     * so do not modify the base URIs after method is applied.
      */
    implicit def httpConfigBuilderExtension(builder: HttpProtocolBuilder) = new {
       def enableWicketTargets() = {
          if (builder.protocol.baseURLs.isEmpty) {
-            throw new IllegalArgumentException("can not enable wicket targets because base URLs are not yet set, please set base URLs on http config with baseURL() or baseURLs()")
+            throw new IllegalArgumentException("can not enable wicket targets because base URIs are not yet set, please set base URIs on http config with baseURL() or baseURLs()")
          }
          builder.check(wicketTargetsExtractor(builder.protocol.baseURLs))
       }
@@ -61,7 +61,7 @@ object HttpConfig {
    /**
      * A Gatling check implementation which extracts all the wicket targets from the response body.
      */
-   private def wicketTargetsExtractor(baseUrls: List[String]) = new HttpCheck(new Check[Response] {
+   private def wicketTargetsExtractor(baseUris: List[String]) = new HttpCheck(new Check[Response] {
       def check(response: Response, session: Session)(implicit cache: mutable.Map[Any, Any]): Validation[CheckResult] = new CheckResult(None, None) {
          override def hasUpdate = response.hasResponseBody
 
@@ -69,11 +69,16 @@ object HttpConfig {
             if (!hasUpdate) {
                None
             } else {
-               Some(_.set("wicketTargets", WicketTargets(baseUrls, response.uri.get.getPath(), response.body.string)))
+               Some(_.set("wicketTargets", WicketTargets(createRequestUri(baseUris, response.uri.get.getPath()), response.body.string)))
             }
          }
       }
    }, HttpCheckScope.Body, Some(StringResponseBodyUsageStrategy))
 
+   /**
+     * Create a relative URI from the context-root relative request URI and the
+     * given base URIs.
+     */
+   private def createRequestUri(baseUris: List[String], requestUri: String) = requestUri // TODO
 }
 
