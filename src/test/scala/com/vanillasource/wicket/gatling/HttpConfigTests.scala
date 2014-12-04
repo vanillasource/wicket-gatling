@@ -19,12 +19,23 @@
 package com.vanillasource.wicket.gatling
 
 import io.gatling.core.config.GatlingConfiguration
+import scala.collection.mutable
 import org.scalatest.WordSpec
-import org.scalatest.BeforeAndAfterAll
 import io.gatling.http.Predef._
+import io.gatling.core.validation._
+import io.gatling.core.session.Session
+import io.gatling.http.response.Response
+import io.gatling.http.response.HttpResponse
+import io.gatling.http.response.StringResponseBody
+import java.nio.charset.Charset
 import com.vanillasource.wicket.gatling.HttpConfig._
 
-class HttpConfigTests extends WordSpec with BeforeAndAfterAll {
+class HttpConfigTests extends WordSpec {
+   implicit val httpCache: mutable.Map[Any, Any] = mutable.Map() // You need this for calling check() simpler
+   GatlingConfiguration.setUp()
+   val config = http.baseURL("http://localhost").enableWicketTargets()
+   val check = config.protocol.responsePart.checks(0)
+
    "Building the http configuration" when {
       "base url was not yet called" should {
          "throw exception" in {
@@ -41,9 +52,56 @@ class HttpConfigTests extends WordSpec with BeforeAndAfterAll {
          }
       }
    }
+   "The extractor check" when {
+      "there is no response body" should {
+         "have no update" in {
+            val checkResult = check.check(emptyResponse(), Session("scenarioName", "userId"))
 
-   override def beforeAll() {
-      GatlingConfiguration.setUp()
+            val result = checkResult.map(_.hasUpdate)
+
+            assert(result === Success(false))
+         }
+         "not update session" in {
+            val checkResult = check.check(emptyResponse(), Session("scenarioName", "userId"))
+
+            val result = checkResult.map(_.update.map(_.apply(Session("currentScenario", "userId"))))
+
+            assert(result === Success(None))
+         }
+      }
+      "there is a response body" should {
+         "have update" in {
+            val checkResult = check.check(emptyResponse().copy(bodyLength = 1), Session("scenarioName", "userId"))
+
+            val result = checkResult.map(_.hasUpdate)
+
+            assert(result === Success(true))
+         }
+         "update session with targets" in {
+            val checkResult = check.check(emptyResponse().copy(bodyLength = 1), Session("scenarioName", "userId"))
+
+            val result = checkResult.map(_.update.map(_.apply(Session("currentScenario", "userId"))))
+
+            info("Result: "+result)
+
+            assert(result.get.get.attributes.contains("wicketTargets"))
+         }
+      }
    }
+
+   private def emptyResponse() = HttpResponse(
+      request = null,
+      nettyRequest = None,
+      status = None,
+      headers = null,
+      body = StringResponseBody("body", Charset.defaultCharset()),
+      checksums = Map(),
+      bodyLength = 0,
+      charset = null,
+      firstByteSent = 0,
+      lastByteSent = 0,
+      firstByteReceived = 0,
+      lastByteReceived = 0
+   )
 }
 
