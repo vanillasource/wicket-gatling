@@ -69,9 +69,7 @@ class HttpConfigTests extends WordSpec {
          "not update session" in {
             val check = createCheck(emptyResponse())
 
-            val result = check.update.map(_.apply(Session("currentScenario", "userId")))
-
-            assert(result === None)
+            assert(check.update === None)
          }
       }
       "there is a response body" should {
@@ -81,17 +79,28 @@ class HttpConfigTests extends WordSpec {
             assert(check.hasUpdate)
          }
          "update session with targets" in {
-            val check = createCheck(emptyResponse().copy(hasResponseBody = true))
+            val session = createUpdatedSession(emptyResponse().copy(hasResponseBody = true))
 
-            val result = check.update.map(_.apply(Session("currentScenario", "userId")))
-
-            assert(result.get.attributes.contains("wicketTargets"))
+            assert(session.attributes.contains("wicketTargets"))
          }
+      }
+   }
+   "The wicket targets" should {
+      "have the request body" in {
+         val targets = createTargets(emptyResponse().copy(hasResponseBody = true))
+
+            assert(targets.responseBody === "body")
       }
    }
 
    private def createCheck(response: Response) = 
       check.check(response, Session("scenarioName", "userId")).get
+
+   private def createUpdatedSession(response: Response) = 
+      createCheck(response).update.get.apply(Session("currentScenario", "userId"))
+
+   private def createTargets(response: Response) =
+      createUpdatedSession(response).apply("wicketTargets").as[WicketTargets]
 
    private def emptyResponse() = StubResponse(
       request = null,
