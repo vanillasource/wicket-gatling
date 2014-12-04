@@ -25,8 +25,15 @@ import io.gatling.http.Predef._
 import io.gatling.core.validation._
 import io.gatling.core.session.Session
 import io.gatling.http.response.Response
+import io.gatling.http.response.ResponseBody
 import io.gatling.http.response.HttpResponse
 import io.gatling.http.response.StringResponseBody
+import com.ning.http.client.uri.Uri
+import com.ning.http.client.Request
+import com.ning.http.client.HttpResponseStatus
+import com.ning.http.client.cookie.Cookie
+import com.ning.http.client.FluentCaseInsensitiveStringsMap
+import com.ning.http.client.providers.netty.request.NettyRequest
 import java.nio.charset.Charset
 import com.vanillasource.wicket.gatling.HttpConfig._
 
@@ -71,37 +78,80 @@ class HttpConfigTests extends WordSpec {
       }
       "there is a response body" should {
          "have update" in {
-            val checkResult = check.check(emptyResponse().copy(bodyLength = 1), Session("scenarioName", "userId"))
+            val checkResult = check.check(emptyResponse().copy(hasResponseBody = true), Session("scenarioName", "userId"))
 
             val result = checkResult.map(_.hasUpdate)
 
             assert(result === Success(true))
          }
          "update session with targets" in {
-            val checkResult = check.check(emptyResponse().copy(bodyLength = 1), Session("scenarioName", "userId"))
+            val checkResult = check.check(emptyResponse().copy(hasResponseBody = true), Session("scenarioName", "userId"))
 
             val result = checkResult.map(_.update.map(_.apply(Session("currentScenario", "userId"))))
-
-            info("Result: "+result)
 
             assert(result.get.get.attributes.contains("wicketTargets"))
          }
       }
    }
 
-   private def emptyResponse() = HttpResponse(
+   private def emptyResponse() = StubResponse(
       request = null,
       nettyRequest = None,
+      isReceived = true,
+
       status = None,
+      statusCode = Some(200),
+      uri = Some(Uri.create("http://localhost:8080")),
+      isRedirect = false,
+
       headers = null,
-      body = StringResponseBody("body", Charset.defaultCharset()),
+      cookies = List(),
+
       checksums = Map(),
+      hasResponseBody = false,
+      body = StringResponseBody("body", Charset.defaultCharset()),
       bodyLength = 0,
       charset = null,
+
       firstByteSent = 0,
       lastByteSent = 0,
       firstByteReceived = 0,
-      lastByteReceived = 0
+      lastByteReceived = 0,
+      responseTimeInMillis = 0,
+      latencyInMillis = 0
    )
+
+   case class StubResponse(
+      request: Request,
+      nettyRequest: Option[NettyRequest],
+      isReceived: Boolean,
+
+      status: Option[HttpResponseStatus],
+      statusCode: Option[Int],
+      uri: Option[Uri],
+      isRedirect: Boolean,
+
+      headers: FluentCaseInsensitiveStringsMap,
+      cookies: List[Cookie],
+
+      checksums: Map[String, String],
+      hasResponseBody: Boolean,
+      body: ResponseBody,
+      bodyLength: Int,
+      charset: Charset,
+
+      firstByteSent: Long,
+      lastByteSent: Long,
+      firstByteReceived: Long,
+      lastByteReceived: Long,
+      responseTimeInMillis: Long,
+      latencyInMillis: Long
+   ) extends Response {
+      def header(name: String) = ???
+
+      def headers(name: String) = ???
+
+      def checksum(algorithm: String) = ???
+   }
 }
 
