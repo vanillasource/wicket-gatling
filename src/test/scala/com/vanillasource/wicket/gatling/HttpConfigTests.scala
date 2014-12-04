@@ -62,37 +62,36 @@ class HttpConfigTests extends WordSpec {
    "The extractor check" when {
       "there is no response body" should {
          "have no update" in {
-            val checkResult = check.check(emptyResponse(), Session("scenarioName", "userId"))
+            val check = createCheck(emptyResponse())
 
-            val result = checkResult.map(_.hasUpdate)
-
-            assert(result === Success(false))
+            assert(!check.hasUpdate)
          }
          "not update session" in {
-            val checkResult = check.check(emptyResponse(), Session("scenarioName", "userId"))
+            val check = createCheck(emptyResponse())
 
-            val result = checkResult.map(_.update.map(_.apply(Session("currentScenario", "userId"))))
+            val result = check.update.map(_.apply(Session("currentScenario", "userId")))
 
-            assert(result === Success(None))
+            assert(result === None)
          }
       }
       "there is a response body" should {
          "have update" in {
-            val checkResult = check.check(emptyResponse().copy(hasResponseBody = true), Session("scenarioName", "userId"))
+            val check = createCheck(emptyResponse().copy(hasResponseBody = true))
 
-            val result = checkResult.map(_.hasUpdate)
-
-            assert(result === Success(true))
+            assert(check.hasUpdate)
          }
          "update session with targets" in {
-            val checkResult = check.check(emptyResponse().copy(hasResponseBody = true), Session("scenarioName", "userId"))
+            val check = createCheck(emptyResponse().copy(hasResponseBody = true))
 
-            val result = checkResult.map(_.update.map(_.apply(Session("currentScenario", "userId"))))
+            val result = check.update.map(_.apply(Session("currentScenario", "userId")))
 
-            assert(result.get.get.attributes.contains("wicketTargets"))
+            assert(result.get.attributes.contains("wicketTargets"))
          }
       }
    }
+
+   private def createCheck(response: Response) = 
+      check.check(response, Session("scenarioName", "userId")).get
 
    private def emptyResponse() = StubResponse(
       request = null,
