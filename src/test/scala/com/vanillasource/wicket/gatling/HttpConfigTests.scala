@@ -40,7 +40,7 @@ import com.vanillasource.wicket.gatling.HttpConfig._
 class HttpConfigTests extends WordSpec {
    implicit val httpCache: mutable.Map[Any, Any] = mutable.Map() // You need this for calling check() simpler
    GatlingConfiguration.setUp()
-   val config = http.baseURL("http://localhost").enableWicketTargets()
+   val config = http.baseURL("http://localhost:8080/myapp").enableWicketTargets()
    val check = config.protocol.responsePart.checks(0)
 
    "Building the http configuration" when {
@@ -72,6 +72,13 @@ class HttpConfigTests extends WordSpec {
             assert(check.update === None)
          }
       }
+      "there is no request uri" should {
+         "not update session" in {
+            val check = createCheck(emptyResponse().copy(uri = None))
+
+            assert(check.update === None)
+         }
+      }
       "there is a response body" should {
          "have update" in {
             val check = createCheck(emptyResponse().copy(hasResponseBody = true))
@@ -89,7 +96,12 @@ class HttpConfigTests extends WordSpec {
       "have the request body" in {
          val targets = createTargets(emptyResponse().copy(hasResponseBody = true))
 
-            assert(targets.responseBody === "body")
+         assert(targets.responseBody === "body")
+      }
+      "have a context-root relative path from base url" in {
+         val targets = createTargets(emptyResponse().copy(hasResponseBody = true))
+
+         assert(targets.requestUri === "/wicket/bookmarkable/somepath?param=1")
       }
    }
 
@@ -109,7 +121,7 @@ class HttpConfigTests extends WordSpec {
 
       status = None,
       statusCode = Some(200),
-      uri = Some(Uri.create("http://localhost:8080")),
+      uri = Some(Uri.create("http://localhost:8080/myapp/wicket/bookmarkable/somepath?param=1")),
       isRedirect = false,
 
       headers = null,

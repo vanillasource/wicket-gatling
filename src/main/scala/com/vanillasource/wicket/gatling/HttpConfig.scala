@@ -25,6 +25,7 @@ import scala.collection.mutable
 import io.gatling.core.validation.Validation
 import io.gatling.http.check.HttpCheck
 import io.gatling.http.check.HttpCheckScope
+import com.ning.http.client.uri.Uri
 import io.gatling.http.response.Response
 import io.gatling.http.response.StringResponseBodyUsageStrategy
 import io.gatling.core.validation._
@@ -54,22 +55,22 @@ object HttpConfig {
          if (builder.protocol.baseURLs.isEmpty) {
             throw new IllegalArgumentException("can not enable wicket targets because base URIs are not yet set, please set base URIs on http config with baseURL() or baseURLs()")
          }
-         builder.check(wicketTargetsExtractor(builder.protocol.baseURLs))
+         builder.check(wicketTargetsExtractor(builder.protocol.baseURLs.map(Uri.create(_))))
       }
    }
 
    /**
      * A Gatling check implementation which extracts all the wicket targets from the response body.
      */
-   private def wicketTargetsExtractor(baseUris: List[String]) = new HttpCheck(new Check[Response] {
+   private def wicketTargetsExtractor(baseUris: List[Uri]) = new HttpCheck(new Check[Response] {
       def check(response: Response, session: Session)(implicit cache: mutable.Map[Any, Any]): Validation[CheckResult] = new CheckResult(None, None) {
          override def hasUpdate = response.hasResponseBody
 
          override def update = {
-            if (!hasUpdate) {
+            if (!hasUpdate || response.uri == None) {
                None
             } else {
-               Some(_.set("wicketTargets", WicketTargets(createRequestUri(baseUris, response.uri.get.getPath()), response.body.string)))
+               Some(_.set("wicketTargets", WicketTargets(createRequestUri(baseUris, response.uri.get), response.body.string)))
             }
          }
       }
@@ -77,8 +78,26 @@ object HttpConfig {
 
    /**
      * Create a relative URI from the context-root relative request URI and the
-     * given base URIs.
+     * given base URIs. Gatling takes uris relative to the given base uris, which
+     * might already contain context-roots. The requests however contain the full uri.
+     *
+     * Base URI might be: `http://localhost:8080/myapp`
+     *
+     * Request uri might be: `http://localhost:8080/myapp/wicket/bookmarkable/...
+     *
+     * This method will generate: `/wicket/bookmarkable/...`
+     *
+     * @param baseUris The base urls defined by the http configuration. This
+     *    might be multiple URIs in in which case gatling will choose one at
+     *    random for each request.
+     * @param requestUri The request Uri of the current request.
      */
-   private def createRequestUri(baseUris: List[String], requestUri: String) = requestUri // TODO
+   private def createRequestUri(baseUris: List[Uri], requestUri: Uri) = {
+      val acutalBaseUris = baseUris.filter(candidateBaseUri => requestUri.toUrl().startsWith(candidateBaseUri.toUrl()))
+      if (acutalBaseUris.isEmpty) {
+         throw new IllegalArgumentException("request uri '"+requestUri.toUrl()+"' was not part of any of the given base uris: "+baseUris)
+      }
+      requestUri.toUrl().substring(acutalBaseUris(0).toUrl().length())
+   }
 }
 
