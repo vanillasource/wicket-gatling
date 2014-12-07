@@ -57,6 +57,42 @@ class WicketTargetsTests extends WordSpec {
          assert(target.targets(0) == (TargetSpec(TargetType.Link, List("path")),
             "/?2-1.ILinkListener-subject~tab~bar-panel-panel-list~view~container-tile-hover~wrapper-content~row-content~col-content&param1=12345"))
       }
+      "deconstruct wicket path into path components" in {
+         val target = WicketTargets("/", 
+             """<a wicketpath="path-component-1_path-component-2_path-component-3" href="./com.vanillasource.wicket.gatling.SamplePage?1-1.ILinkListener-right~panel-right~panel~content-link-launch~Sample+Link" class="list-group-item">
+                <i class="glyphicon glyphicon-play"></i>&nbsp;Sample Link</a>""")
+
+         assert(target.targets(0)._1.path == List("path-component-1", "path-component-2", "path-component-3"))
+      }
+      "preserve ordering of same type links in body" in {
+         val target1 = WicketTargets("/", 
+             """<a wicketpath="path_1" href="./com.vanillasource.wicket.gatling.SamplePage?1-1.ILinkListener-right~panel-right~panel~content-link-launch~Sample+Link" class="list-group-item">
+                <i class="glyphicon glyphicon-play"></i>&nbsp;Sample Link</a>"""+
+             """<a wicketpath="path_2" href="./com.vanillasource.wicket.gatling.SamplePage?1-1.ILinkListener-right~panel-right~panel~content-link-launch~Sample+Link" class="list-group-item">
+                <i class="glyphicon glyphicon-play"></i>&nbsp;Sample Link</a>""")
+
+         val target2 = WicketTargets("/", 
+             """<a wicketpath="path_2" href="./com.vanillasource.wicket.gatling.SamplePage?1-1.ILinkListener-right~panel-right~panel~content-link-launch~Sample+Link" class="list-group-item">
+                <i class="glyphicon glyphicon-play"></i>&nbsp;Sample Link</a>"""+
+             """<a wicketpath="path_1" href="./com.vanillasource.wicket.gatling.SamplePage?1-1.ILinkListener-right~panel-right~panel~content-link-launch~Sample+Link" class="list-group-item">
+                <i class="glyphicon glyphicon-play"></i>&nbsp;Sample Link</a>""")
+
+         assert(target1.targets(0)._1.path == List("path", "1"))
+         assert(target1.targets(1)._1.path == List("path", "2"))
+         assert(target2.targets(0)._1.path == List("path", "2"))
+         assert(target2.targets(1)._1.path == List("path", "1"))
+      }
+      "escape html encoded characters in uris" in {
+         val target = WicketTargets("/", """<a wicketpath="path" href="/some&#243;and&amp;"></a>""")
+
+         assert(target.targets(0)._2 == "/someóand&")
+      }
+      "apply found uris on the request uri supplied" in {
+         val target = WicketTargets("/wicket/SomePage?1", 
+            """<a wicketpath="path" href="./SomePage?1-1.ILinkListener-something"></a>""")
+
+         assert(target.targets(0)._2 == "/wicket/SomePage?1-1.ILinkListener-something")
+      }
    }
 }
 
