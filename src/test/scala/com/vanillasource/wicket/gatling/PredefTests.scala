@@ -78,6 +78,23 @@ class PredefTests extends WordSpec {
          }
       }
    }
+   "Determining whether a link exsists" should {
+      "return true if link exists" in {
+         val result = wicketUriExists("A").apply(targetsSession)
+
+         assert(result == Success(true))
+      }
+      "return false if link does not exist" in {
+         val result = wicketUriExists("D").apply(targetsSession)
+
+         assert(result == Success(false))
+      }
+      "return failure if target is not in session" in {
+         val result = wicketUriExists("A").apply(noTargetsSession)
+
+         assert(result.isInstanceOf[Failure])
+      }
+   }
 
    def targetsSession = noTargetsSession
       .set("wicketTargets", WicketTargets(List(

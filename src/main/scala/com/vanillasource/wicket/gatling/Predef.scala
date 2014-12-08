@@ -72,5 +72,17 @@ object Predef {
    implicit class SelectableUriList(uris: Expression[List[String]]) {
       def selectUri(mapper: List[String] => String) = uris.andThen(_.map(mapper))
    }
+
+   /**
+    * Can be used in conditional executions like doIf() calls, the following way:
+    * {{{
+    *    .doIf(wicketUriExists("next-page")) {
+    *       exec(http("...") ...)
+    *    }
+    * }}}
+    */
+   def wicketUriExists(pathSpec: Expression[String]*): Expression[Boolean] = 
+      wicketUris(TargetType.Any, pathSpec:_*).map(!_.isEmpty)
+
 }
 
