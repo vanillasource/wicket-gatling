@@ -22,6 +22,7 @@ import java.util.regex.Pattern
 import org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4
 import scala.util.matching.Regex
 import java.net.URI
+import scala.annotation.tailrec
 
 /**
   * Contains all the Wicket targets from a response body. An object of this type will be always present
@@ -66,7 +67,42 @@ object WicketTargets {
   * A target specification with the type, and the corresponding Wicket
   * path (already split).
   */
-case class TargetSpec(val targetType: TargetType, val path: List[String])
+case class TargetSpec(val targetType: TargetType, val path: List[String]) {
+   /**
+     * Determines whether this target specification matches the
+     * target type and path given.
+     */
+   def matches(targetType: TargetType, pathSpec: String*): Boolean = 
+      targetType == this.targetType && matches(pathSpec:_*)
+
+   /**
+     * Determines whether this target specification matches the path
+     * fragments given. The path fragments must represent a subset of
+     * the full wicket path of this target. All fragments must be in
+     * the same order as the actual path components, but do not need
+     * to be complete.
+     *
+     * For example to matching a target on path `A - B - C - D - E` the
+     * following are true:
+     * - `matches("A") == true`
+     * - `matches("C") == true`
+     * - `matches("A", "C") == true`
+     * - `matches("A", "B", "D") == true`
+     * - `matches("B", "A") == false`
+     * - `matches("A", "F") == false`
+     */
+   def matches(pathSpec: String*): Boolean = matches(pathSpec.toList, path)
+
+   @tailrec
+   private def matches(pathSpec: List[String], paths: List[String]): Boolean = 
+      if (pathSpec.isEmpty) {
+         true
+      } else if (!path.contains(pathSpec.head)) {
+         false
+      } else {
+         matches(pathSpec.tail, path.dropWhile(_ != pathSpec.head))
+      }
+}
 
 object TargetSpec {
    def apply(targetType: TargetType, wicketPath: String) = new TargetSpec(targetType, wicketPath.split("_").toList)

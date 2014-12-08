@@ -94,5 +94,55 @@ class WicketTargetsTests extends WordSpec {
          assert(target.targets(0)._2 == "/wicket/SomePage?1-1.ILinkListener-something")
       }
    }
+
+   "Matching a target spec" when {
+      "first component is supplied" should {
+         "match" in {
+            assert(testSpec.matches("A"))
+         }
+      }
+      "last component is supplied" should {
+         "match" in {
+            assert(testSpec.matches("E"))
+         }
+      }
+      "not contained component is supplied" should {
+         "not match" in {
+            assert(!testSpec.matches("F"))
+         }
+      }
+      "full path is supplied" should {
+         "match" in {
+            assert(testSpec.matches("A", "B", "C", "D", "E"))
+         }
+      }
+      "part of path is supplied" should {
+         "match" in {
+            assert(testSpec.matches("A", "D", "E"))
+         }
+      }
+      "empty query is supplied " should {
+         "match" in {
+            assert(testSpec.matches())
+         }
+      }
+      "reversed components are supplied" should {
+         "not match" in {
+            assert(testSpec.matches("D", "A"))
+         }
+      }
+      "both the right type and component is supplied" should {
+         "match" in {
+            assert(testSpec.matches(TargetType.Link, "A"))
+         }
+      }
+      "wrong type and right component is supplied" should {
+         "not match" in {
+            assert(!testSpec.matches(TargetType.Form, "A"))
+         }
+      }
+   }
+
+   private def testSpec = TargetSpec(TargetType.Link, List("A", "B", "C", "D", "E"))
 }
 
