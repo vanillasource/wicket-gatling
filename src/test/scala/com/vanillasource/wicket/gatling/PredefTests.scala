@@ -95,6 +95,29 @@ class PredefTests extends WordSpec {
          assert(result.isInstanceOf[Failure])
       }
    }
+   "Getting exactly one uri" when {
+      "there is only one uri" should {
+         "return the uri" in {
+            val result = wicketUri(TargetType.Any, "C").apply(targetsSession)
+
+            assert(result == Success("URI2"))
+         }
+      }
+      "there are multiple uris" should {
+         "return failure" in {
+            val result = wicketUri(TargetType.Any, "A").apply(targetsSession)
+
+            assert(result.isInstanceOf[Failure])
+         }
+      }
+      "there are no uris" should {
+         "return failure" in {
+            val result = wicketUri(TargetType.Any, "D").apply(targetsSession)
+
+            assert(result.isInstanceOf[Failure])
+         }
+      }
+   }
 
    def targetsSession = noTargetsSession
       .set("wicketTargets", WicketTargets(List(

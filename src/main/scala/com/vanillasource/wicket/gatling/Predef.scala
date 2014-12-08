@@ -74,15 +74,59 @@ object Predef {
    }
 
    /**
-    * Can be used in conditional executions like doIf() calls, the following way:
-    * {{{
-    *    .doIf(wicketUriExists("next-page")) {
-    *       exec(http("...") ...)
-    *    }
-    * }}}
-    */
+     * Can be used in conditional executions like doIf() calls, the following way:
+     * {{{
+     *    .doIf(wicketUriExists("next-page")) {
+     *       exec(http("...") ...)
+     *    }
+     * }}}
+     */
    def wicketUriExists(pathSpec: Expression[String]*): Expression[Boolean] = 
       wicketUris(TargetType.Any, pathSpec:_*).map(!_.isEmpty)
 
+   /**
+     * Expects and returns exactly one URI. If either no URI can be found
+     * for the given specification, or more than one URI is found, then a failure
+     * is returned.
+     */
+   def wicketUri(targetType: TargetType, pathSpec: Expression[String]*) = wicketUris(targetType, pathSpec:_*).andThen(_.flatMap(uriList =>
+      if (uriList.isEmpty) {
+         s"on the given path '$pathSpec' is no URI to be found".failure
+      } else if (uriList.size > 1) {
+         s"on thet given path '$pathSpec' there are multiple URIs to be found".failure
+      } else {
+         uriList.head.success
+      }
+   ))
+
+   /**
+     * Returns all links found under the given path.
+     */
+   def wicketLinksUnder(pathSpec: Expression[String]*) = wicketUris(TargetType.Link, pathSpec:_*)
+
+   /**
+     * Returns all forms found under the given path.
+     */
+   def wicketFormsUnder(pathSpec: Expression[String]*) = wicketUris(TargetType.Form, pathSpec:_*)
+
+   /**
+     * Returns exactly one link found under the given path. Expected
+     * to be used with the get() method:
+     * {{{
+     * http("Go to next page")
+     *    .get(wicketLinkUnder("next-page-link"))
+     * }}}
+     */
+   def wicketLinkUnder(pathSpec: Expression[String]*) = wicketUri(TargetType.Link, pathSpec:_*)
+
+   /**
+     * Returns exactly one form found under the given path. Expected
+     * to be used with the post() method:
+     * {{{
+     * http("Submit User Form")
+     *    .post(wicketFormUnder("user-form"))
+     * }}}
+     */
+   def wicketFormUnder(pathSpec: Expression[String]*) = wicketUri(TargetType.Form, pathSpec:_*)
 }
 
