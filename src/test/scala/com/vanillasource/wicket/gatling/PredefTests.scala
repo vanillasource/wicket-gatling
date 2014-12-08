@@ -65,7 +65,7 @@ class PredefTests extends WordSpec {
    "Selecting URIs from multiple ones" when {
       "selecting the first item" should {
          "return the first item" in {
-            val uri = wicketUris(TargetType.Link).selectLink(_(0)).apply(targetsSession)
+            val uri = wicketUris(TargetType.Link).selectUri(_(0)).apply(targetsSession)
 
             assert(uri == Success("URI1"))
          }
@@ -73,7 +73,7 @@ class PredefTests extends WordSpec {
       "selecting a non-existent item" should {
          "throw exception" in {
             intercept[IndexOutOfBoundsException] {
-               wicketUris(TargetType.Link).selectLink(_(3)).apply(targetsSession)
+               wicketUris(TargetType.Link).selectUri(_(3)).apply(targetsSession)
             }
          }
       }

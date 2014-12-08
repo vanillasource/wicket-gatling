@@ -66,11 +66,11 @@ object Predef {
      * Intended usage is on any method here that returns multiple URIs, for
      * example selecting a link randomly:
      * {{{
-     *    wicketLinks("link-id").selectLink(links -> links(rnd.nextInt(links.size)))
+     *    wicketLinks("link-id").selectUri(links -> links(rnd.nextInt(links.size)))
      * }}}
      */
    implicit class SelectableUriList(uris: Expression[List[String]]) {
-      def selectLink(mapper: List[String] => String) = uris.andThen(_.map(mapper))
+      def selectUri(mapper: List[String] => String) = uris.andThen(_.map(mapper))
    }
 }
 
