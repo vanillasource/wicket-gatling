@@ -79,13 +79,6 @@ object WicketTargets {
   */
 case class TargetSpec(val targetType: TargetType, val path: List[String]) {
    /**
-     * Determines whether this target specification matches the
-     * target type and path given.
-     */
-   def matches(targetType: TargetType, pathSpec: String*): Boolean = 
-      targetType == this.targetType && matches(pathSpec:_*)
-
-   /**
      * Determines whether this target specification matches the path
      * fragments given. The path fragments must represent a subset of
      * the full wicket path of this target. All fragments must be in
@@ -102,7 +95,10 @@ case class TargetSpec(val targetType: TargetType, val path: List[String]) {
      *  - `matches("B", "A") == false`
      *  - `matches("A", "F") == false`
      */
-   def matches(pathSpec: String*): Boolean = matches(pathSpec.toList, path)
+   def matches(targetType: TargetType, pathSpec: String*): Boolean = 
+      ((targetType == TargetType.Any) || (targetType == this.targetType)) && matches(pathSpec.toList, path)
+
+   def matches(pathSpec: String*): Boolean = matches(TargetType.Any, pathSpec:_*)
 
    @tailrec
    private def matches(pathSpec: List[String], paths: List[String]): Boolean = 
@@ -122,6 +118,7 @@ object TargetSpec {
 sealed trait TargetType
 
 object TargetType {
+   case object Any extends TargetType
    case object Link extends TargetType
    case object Form extends TargetType
 }
