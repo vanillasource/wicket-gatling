@@ -28,7 +28,17 @@ import scala.annotation.tailrec
   * Contains all the Wicket targets from a response body. An object of this type will be always present
   * in the session object.
   */
-case class WicketTargets(targets: List[(TargetSpec, String)])(val requestUri: String, val responseBody: String)
+case class WicketTargets(targets: List[(TargetSpec, String)])(val requestUri: String, val responseBody: String) {
+   /**
+     * Get all the URIs from this targets object that match the
+     * given type and path.
+     * @param targetType The type of links to get
+     * @param pathSpec The path components matcher specification ([[WicketTargets.matches]])
+     * @return The matching URIs as strings in a list, that may be empty.
+     */
+   def getUris(targetType: TargetType, pathSpec: String*) = 
+      targets.filter(_._1.matches(targetType, pathSpec:_*)).map(_._2).toList
+}
 
 object WicketTargets {
    private val linkOnclickPattern = 

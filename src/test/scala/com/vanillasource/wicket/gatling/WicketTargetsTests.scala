@@ -143,6 +143,23 @@ class WicketTargetsTests extends WordSpec {
       }
    }
 
+   "Selecting from targets" should {
+      "return matching targets" in {
+         val targets = WicketTargets(List(
+            (TargetSpec(TargetType.Link, List("A", "B")), "URI1"),
+            (TargetSpec(TargetType.Link, List("A", "C")), "URI2"))) ("", "")
+
+         assert(targets.getUris(TargetType.Link, "A") == List("URI1", "URI2"))
+      }
+      "ommit non-matching targets" in {
+         val targets = WicketTargets(List(
+            (TargetSpec(TargetType.Link, List("A", "B")), "URI1"),
+            (TargetSpec(TargetType.Link, List("A", "C")), "URI2"))) ("", "")
+
+         assert(targets.getUris(TargetType.Link, "C") == List("URI2"))
+      }
+   }
+
    private def testSpec = TargetSpec(TargetType.Link, List("A", "B", "C", "D", "E"))
 }
 

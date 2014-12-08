@@ -18,6 +18,9 @@
 
 package com.vanillasource.wicket.gatling
 
+import io.gatling.core.session.Expression
+import io.gatling.core.validation._
+
 /**
   * Import all methods from this object to use all wicket-gatling functions.
   *
@@ -27,5 +30,34 @@ package com.vanillasource.wicket.gatling
   * }}}
   */
 object Predef {
+   /**
+     * Get all the wicket URIs that match the given parameters. See [[WicketTargets.getUris]].
+     */
+   def wicketUris(targetType: TargetType, pathSpec: Expression[String]*): Expression[List[String]] = session => {
+      if (!session.contains("wicketTargets")) {
+         "no wicket targets available in session, probably not enabled through enableWicketTargets(), or page was not loaded properly".failure
+      } else {
+         switchSeqAndExpression(pathSpec.toList).apply(session).map(pathSpecStrings => {
+            session("wicketTargets").as[WicketTargets].getUris(targetType, pathSpecStrings:_*)
+         })
+      }
+   }
+
+   /**
+     * Turn the expression and sequence inside out. This is done so it can be
+     * easily mapped once, and any potential errors in any of the expressions
+     * immediately lead to failure.
+     */
+   private def switchSeqAndExpression[T](expressions: List[Expression[T]]): Expression[List[T]] = session => {
+      if (expressions.isEmpty) {
+         Nil.success
+      } else {
+         for (
+            current <- expressions.head.apply(session);
+            rest <- switchSeqAndExpression(expressions.tail).apply(session)
+         ) yield (current :: rest)
+      }
+   }
+      
 }
 
