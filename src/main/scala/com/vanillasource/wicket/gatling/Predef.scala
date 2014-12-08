@@ -58,6 +58,19 @@ object Predef {
          ) yield (current :: rest)
       }
    }
-      
+
+   /**
+     * Makes it possible to select a single URI from possible multiple ones using
+     * a supplied logic.
+     * 
+     * Intended usage is on any method here that returns multiple URIs, for
+     * example selecting a link randomly:
+     * {{{
+     *    wicketLinks("link-id").selectLink(links -> links(rnd.nextInt(links.size)))
+     * }}}
+     */
+   implicit class SelectableUriList(uris: Expression[List[String]]) {
+      def selectLink(mapper: List[String] => String) = uris.andThen(_.map(mapper))
+   }
 }
 

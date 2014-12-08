@@ -33,7 +33,7 @@ case class WicketTargets(targets: List[(TargetSpec, String)])(val requestUri: St
      * Get all the URIs from this targets object that match the
      * given type and path.
      * @param targetType The type of links to get
-     * @param pathSpec The path components matcher specification ([[WicketTargets.matches]])
+     * @param pathSpec The path components matcher specification ([[TargetSpec.matches]])
      * @return The matching URIs as strings in a list, that may be empty.
      */
    def getUris(targetType: TargetType, pathSpec: String*) = 
@@ -94,12 +94,13 @@ case class TargetSpec(val targetType: TargetType, val path: List[String]) {
      *
      * For example to matching a target on path `A - B - C - D - E` the
      * following are true:
-     * - `matches("A") == true`
-     * - `matches("C") == true`
-     * - `matches("A", "C") == true`
-     * - `matches("A", "B", "D") == true`
-     * - `matches("B", "A") == false`
-     * - `matches("A", "F") == false`
+     *
+     *  - `matches("A") == true`
+     *  - `matches("C") == true`
+     *  - `matches("A", "C") == true`
+     *  - `matches("A", "B", "D") == true`
+     *  - `matches("B", "A") == false`
+     *  - `matches("A", "F") == false`
      */
    def matches(pathSpec: String*): Boolean = matches(pathSpec.toList, path)
 
