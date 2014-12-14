@@ -8,10 +8,31 @@
    <version>1.0.0-SNAPSHOT</version>
    <name>Wicket integration to Gatling</name>
    <description>Makes Wicket links, ajax links, forms easily available for Gatling scripts.</description>
+   <url>https://github.com/vanillasource/wicket-gatling</url>
 
    <properties>
       <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
    </properties>
+
+   <licenses>
+      <license>
+         <name>GNU Lesser General Public License</name>
+         <url>http://www.gnu.org/licenses/lgpl.html</url>
+      </license>
+   </licenses>
+
+   <developers>
+      <developer>
+         <name>Robert Brautigam</name>
+         <email>brautigam.robert.gyula@gmail.com</email>
+      </developer>
+   </developers>
+
+   <scm>
+      <connection>scm:git:git@github.com:vanillasource/wicket-gatling.git</connection>
+      <developerConnection>scm:git:git@github.com:vanillasource/wicket-gatling.git</developerConnection>
+      <url>git@github.com:vanillasource/wicket-gatling.git</url>
+   </scm>
 
    <build>
       <plugins>
