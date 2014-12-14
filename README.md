@@ -52,7 +52,7 @@ libraryDependencies += "com.vanillasource.wicket-gatling" % "wicket-gatling" % "
 
 ### Setting up Wicket
 
-This library selects Wicket URIs out of components based on the *wicketpath* attribute set in the
+This library selects Wicket URIs out of the response based on the *wicketpath* attribute set in the
 generated HTML. This is not on by default, so you have to enable it for development environments,
 by putting the following code in your Application class:
 
@@ -88,13 +88,15 @@ After Wicket targets are enabled, you can use the following methods to retrieve 
 
 ### Getting exactly one URI
 
-Methods `wicketLinkUnder()` and `wicketFormUnder()` can be both diractly used in `get()` and `post()` methods:
+Methods `wicketLinkUnder()` and `wicketFormUnder()` can be both directly used in `get()` and `post()` methods:
 
 ```scala
 val scenario = scenario("Test")
     .exec(http("Homepage").get("/"))
     .exec(http("Profile").get(wicketLinkUnder("profile-link")))
 ```
+
+If there is not exactly one URI found, this will cause a Gatling *KO* for the request.
 
 ### Selecting from multiple URIs
 
