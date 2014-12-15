@@ -86,6 +86,13 @@ After Wicket targets are enabled, you can use the following methods to retrieve 
  * `wicketFormsUnder(path_fragment)`: Returns a list of form URIs for the given wicket path.
  * `wicketFormUnder(path_fragment)`: Expects and returns a single URI under the given path.
 
+Currently supported link and form types:
+
+ * The `Link` component on any tag (support for both direct *href*, and *onclick* variant)
+ * `AjaxLink`s
+ * Normal Forms with POST to the *action* attribute (can directly submit Form)
+ * Forms with `AjaxButton`, in which case both the Form and the Button can be used to submit
+
 ### Getting exactly one URI
 
 Methods `wicketLinkUnder()` and `wicketFormUnder()` can be both directly used in `get()` and `post()` methods:
