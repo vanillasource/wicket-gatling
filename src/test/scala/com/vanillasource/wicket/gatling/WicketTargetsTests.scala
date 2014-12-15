@@ -93,6 +93,22 @@ class WicketTargetsTests extends WordSpec {
 
          assert(target.targets(0)._2 == "/wicket/SomePage?1-1.ILinkListener-something")
       }
+      "detect ajax links" in {
+         val target = WicketTargets("/wicket/SomePage?1",
+            """Wicket.Ajax.ajax({"u":"./?0-8.IBehaviorListener.0-ajaxlink","e":"click","c":"ajaxlink3"});;"""+
+            """<a wicket:id="ajaxlink" id="ajaxlink3" wicketpath="ajaxlink" href="javascript:;">Ajax Link</a>""")
+
+         assert(target.targets(0) == (TargetSpec(TargetType.Link, List("ajaxlink")), 
+            "/wicket/?0-8.IBehaviorListener.0-ajaxlink"))
+      }
+      "detect ajax forms" in {
+         val target = WicketTargets("/wicket/SomePage?1",
+            """Wicket.Ajax.ajax({"f":"ajaxform1","u":"./?0-8.IBehaviorListener.0-ajaxform-ajaxformbutton","e":"click","c":"ajaxformbutton2","sc":"ajaxformbutton","m":"POST"});;"""+
+            """<button wicket:id="ajaxformbutton" name="ajaxformbutton" id="ajaxformbutton2" wicketpath="ajaxform_ajaxformbutton">Submit</button>""")
+
+         assert(target.targets(0) == (TargetSpec(TargetType.Form, List("ajaxform", "ajaxformbutton")), 
+            "/wicket/?0-8.IBehaviorListener.0-ajaxform-ajaxformbutton"))
+      }
    }
 
    "Matching a target spec" when {

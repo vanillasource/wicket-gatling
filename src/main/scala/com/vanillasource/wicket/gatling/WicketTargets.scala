@@ -49,6 +49,8 @@ object WicketTargets {
       """<a[^>]* href="([^"]+)"[^>]* wicketpath="([a-zA-Z0-9\-_]+)"[^>]*>""".r
    private val formPattern = 
       """<form[^>]* wicketpath="([a-zA-Z0-9\-_]+)"[^>]* action="([^"]+)"[^>]*>""".r
+   private val ajaxPattern =
+      """Wicket\.Ajax\.ajax\(\{([^}]*)\}\)""".r
 
    /**
      * Build the targets object from an URI and the corresponding body. All URIs
@@ -61,7 +63,8 @@ object WicketTargets {
       findUris(linkOnclickPattern, TargetType.Link, requestUri, body) :::
       findUris(linkDirectPattern, TargetType.Link, requestUri, body) :::
       findUris(linkDirectPatternReverse, TargetType.Link, requestUri, body, 2, 1) :::
-      findUris(formPattern, TargetType.Form, requestUri, body)
+      findUris(formPattern, TargetType.Form, requestUri, body) :::
+      findAjaxUris(requestUri, body)
 
    private def findUris(pattern: Regex, targetType: TargetType, 
          requestUri: String, body: String, pathCaptureGroup: Int = 1, uriCaptureGroup: Int = 2) = {
@@ -69,8 +72,33 @@ object WicketTargets {
       matcher.map(_ => {
          (TargetSpec(targetType, matcher.group(pathCaptureGroup)), 
           new URI(requestUri).resolve(unescapeHtml4(matcher.group(uriCaptureGroup))).toString())
-      }).toList
+      }).filter(!_._2.startsWith("javascript")).toList
    }
+
+   private def findAjaxUris(requestUri: String, body: String): List[(TargetSpec, String)] = {
+      val matcher = ajaxPattern.findAllIn(body)
+      matcher
+         .map(_ => jsonToMap(matcher.group(1)))
+         .filter(map => map.contains("c") && map.contains("u"))
+         .map(map => {
+            val targetType = if (map.get("m") == Some("POST")) TargetType.Form else TargetType.Link
+            val targetTagMatcher = ("<[^>]* id=\""+map("c")+"\"[^>]* wicketpath=\"([^\"]*)\"").r.findAllIn(body)
+            if (!targetTagMatcher.hasNext) {
+               throw new IllegalArgumentException("could not find given id '"+map("c")+" in body")
+            }
+            targetTagMatcher.next()
+            val targetTag = targetTagMatcher.group(1)
+            (TargetSpec(targetType, targetTag),
+             new URI(requestUri).resolve(unescapeHtml4(map("u"))).toString())
+         })
+         .toList
+   }
+
+   private def jsonToMap(json: String): Map[String, String] =
+      json.split(",").map(keyValue => {
+         val splitKeyValue = keyValue.split(":")
+         (splitKeyValue(0).stripPrefix("\"").stripSuffix("\""), splitKeyValue(1).stripPrefix("\"").stripSuffix("\""))
+      }).toMap
 }
 
 /**
