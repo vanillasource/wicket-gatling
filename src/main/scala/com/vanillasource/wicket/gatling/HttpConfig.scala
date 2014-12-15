@@ -50,7 +50,7 @@ object HttpConfig {
      * original protocol builder. Note: when wicket targets are enabled the base URIs are saved,
      * so do not modify the base URIs after method is applied.
      */
-   implicit def httpConfigBuilderExtension(builder: HttpProtocolBuilder) = new {
+   implicit class HttpConfigBuilderExtension(builder: HttpProtocolBuilder) {
       def enableWicketTargets() = {
          if (builder.protocol.baseURLs.isEmpty) {
             throw new IllegalArgumentException("can not enable wicket targets because base URIs are not yet set, please set base URIs on http config with baseURL() or baseURLs()")
