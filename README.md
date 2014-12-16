@@ -39,14 +39,14 @@ If you are using Maven, add this dependency to your pom file:
 <dependency>
    <groupId>com.vanillasource.wicket-gatling</groupId>
    <artifactId>wicket-gatling</artifactId>
-   <version>1.0.0</version>
+   <version>1.0.1</version>
 </dependency>
 ```
 
 If you are using sbt:
 
 ```sbt
-libraryDependencies += "com.vanillasource.wicket-gatling" % "wicket-gatling" % "1.0.0"
+libraryDependencies += "com.vanillasource.wicket-gatling" % "wicket-gatling" % "1.0.1"
 
 ```
 

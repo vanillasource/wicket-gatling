@@ -125,6 +125,26 @@
             <plugins>
                <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
+                  <artifactId>maven-jar-plugin</artifactId>
+                  <version>2.5</version>
+                  <executions>
+                     <execution>
+                        <id>empty-javadoc-jar</id>
+                        <phase>package</phase>
+                        <goals>
+                           <goal>jar</goal>
+                        </goals>
+                        <configuration>
+                           <classifier>javadoc</classifier>
+                           <includes>
+                              <include>**/*.html</include>
+                           </includes>
+                        </configuration>
+                     </execution>
+                  </executions>
+               </plugin>
+               <plugin>
+                  <groupId>org.apache.maven.plugins</groupId>
                   <artifactId>maven-source-plugin</artifactId>
                   <version>2.2.1</version>
                   <executions>
